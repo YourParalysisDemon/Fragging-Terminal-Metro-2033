@@ -26,6 +26,11 @@ module1 = module_from_name(mem.process_handle, "metro.exe").lpBaseOfDll
 primary_offsets = [0X8, 0XC8, 0X8, 0X8, 0X440]
 fov_offsets = [0x0]
 z_offsets = [0XE0, 0X20, 0X100, 0XEC]
+health_offsets = []
+jump_offsets = [0X38, 0X16F8]
+movement_offsets = [0X38, 0X16F0]
+dead_z_offsets = [0X10, 0X8, 0X520, 0X738, 0X51C]
+money = [0X10, 0XB8, 0X4F4]
 
 
 def getpointeraddress(base, offsets):
@@ -43,6 +48,11 @@ def multi_run_primary():
     new_thread.start()
 
 
+def multi_run_money():
+    new_thread = Thread(target=cash, daemon=True)
+    new_thread.start()
+
+
 def multi_run_fov():
     new_thread = Thread(target=fov, daemon=True)
     new_thread.start()
@@ -50,6 +60,11 @@ def multi_run_fov():
 
 def multi_run_z():
     new_thread = Thread(target=Z, daemon=True)
+    new_thread.start()
+
+
+def multi_run_zd():
+    new_thread = Thread(target=Zd, daemon=True)
     new_thread.start()
 
 
@@ -61,6 +76,17 @@ def multi_run_z2():
 def multi_run_z3():
     new_thread = Thread(target=Z3, daemon=True)
     new_thread.start()
+
+
+def cash():
+    addr1 = getpointeraddress(module1 + 0x00D022D0, money)
+    while 1:
+        try:
+            mem.write_int(addr1, 0x42c80000)
+        except pymem.exception.MemoryWriteError as e:
+            print(f"Error writing memory: {e}")
+        if keyboard.is_pressed("F2"):
+            break
 
 
 def primary():
@@ -115,15 +141,19 @@ def fov():
         except pymem.exception.MemoryWriteError as e:
             print(f"Error writing memory: {e}")
         if keyboard.is_pressed("F1"):
-            try:
-                mem.write_int(addr1, 0x42f00000)
-            except pymem.exception.MemoryWriteError as e:
-                print(f"Error writing memory: {e}")
-                if keyboard.is_pressed("F2"):
-                    try:
-                        mem.write_int(addr1, 0x42480000)
-                    except pymem.exception.MemoryWriteError as e:
-                        print(f"Error writing memory: {e}")
+            mem.write_int(addr1, 0x424c0000)
+            break
+
+
+def Zd():
+    addr1 = getpointeraddress(module1 + 0x00D01EB0, dead_z_offsets)
+    while 1:
+        try:
+            mem.write_int(addr1, 0x42480000)
+        except pymem.exception.MemoryWriteError as e:
+            print(f"Error writing memory: {e}")
+        if keyboard.is_pressed("F2"):
+            break
 
 
 pygame.init()
@@ -136,7 +166,7 @@ root.wm_iconphoto(False, photo)
 root.attributes("-topmost", True)
 root.title("Fragging Terminal")
 root.configure(background='dark red')
-root.geometry("180x100")
+root.geometry("180x180")
 
 
 def callback(url):
@@ -154,12 +184,16 @@ def hide():
 # New graphics
 button1 = tk.Button(root, text="Bullet go brrr", bg='black', fg='white', command=multi_run_primary)
 button1.grid(row=1, column=0)
-button2 = tk.Button(root, text="FOV", bg='black', fg='white', command=multi_run_fov)
+button2 = tk.Button(root, text="Cash", bg='black', fg='white', command=multi_run_money)
 button2.grid(row=2, column=0)
-button3 = tk.Button(root, text="FLY", bg='black', fg='white', command=multi_run_z)
+button3 = tk.Button(root, text="FOV", bg='black', fg='white', command=multi_run_fov)
 button3.grid(row=3, column=0)
-button4 = tk.Button(root, text="Exit", bg='white', fg='black', command=root.destroy)
+button4 = tk.Button(root, text="FLY Tower", bg='black', fg='white', command=multi_run_z)
 button4.grid(row=4, column=0)
+button5 = tk.Button(root, text="FLY Dead city", bg='black', fg='white', command=multi_run_zd)
+button5.grid(row=5, column=0)
+button6 = tk.Button(root, text="Exit", bg='white', fg='black', command=root.destroy)
+button6.grid(row=6, column=0)
 # Hot keys
 keyboard.add_hotkey("-", show)
 keyboard.add_hotkey("+", hide)

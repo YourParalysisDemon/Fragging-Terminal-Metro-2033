@@ -26,7 +26,7 @@ module1 = module_from_name(mem.process_handle, "metro.exe").lpBaseOfDll
 primary_offsets = [0X8, 0XC8, 0X8, 0X8, 0X440]
 fov_offsets = [0x0]
 z_offsets = [0XE0, 0X20, 0X100, 0XEC]
-health_offsets = []
+health_offsets = [0X38, 0X2A8]
 jump_offsets = [0X38, 0X16F8]
 movement_offsets = [0X38, 0X16F0]
 dead_z_offsets = [0X10, 0X8, 0X520, 0X738, 0X51C]
@@ -91,9 +91,11 @@ def cash():
 
 def primary():
     addr1 = getpointeraddress(module1 + 0x00D01E50, primary_offsets)
+    addr2 = getpointeraddress(module1 + 0x00D23550, health_offsets)
     while 1:
         try:
             mem.write_int(addr1, 0x100)
+            mem.write_int(addr2, 0x3f800000)
         except pymem.exception.MemoryWriteError as e:
             print(f"Error writing memory: {e}")
         if keyboard.is_pressed("F1"):
